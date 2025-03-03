@@ -16,6 +16,7 @@ services:
     volumes:
       - ./pyflink_job:/opt/flink/pyflink_job
       - ./jars:/opt/flink/jars
+
   
   taskmanager:
     image: flink-kafka-demo
@@ -34,6 +35,7 @@ services:
     volumes:
       - ./pyflink_job:/opt/flink/pyflink_job
       - ./jars:/opt/flink/jars
+ 
 
   zookeeper:
     image: bitnami/zookeeper:latest
@@ -46,14 +48,23 @@ services:
     image: bitnami/kafka:latest
     ports:
       - "9092:9092"
+      - "29092:29092"
     environment:
       - KAFKA_BROKER_ID=1
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,PLAINTEXT_HOST://:29092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092,PLAINTEXT_HOST://kafka:29092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
       - ALLOW_PLAINTEXT_LISTENER=yes
       - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_CFG_DELETE_TOPIC_ENABLE=true
+
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - zookeeper
+    
+networks:
+    default:
+      name : flink-network
+      driver: bridge
